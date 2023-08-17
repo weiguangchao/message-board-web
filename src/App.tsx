@@ -1,24 +1,32 @@
 import React from 'react';
-import logo from './logo.svg';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './App.css';
+import MessageList from './pages/MessageList/MessageList';
+import SubmitMessage from './pages/SubmitMessage/SubmitMessage';
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <MessageList/>,
+  },
+  {
+    path: "/admin",
+    element: <SubmitMessage/>,
+  },
+]);
+
+export const AppContext = React.createContext({
+  account: ''
+});
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <AppContext.Provider value={{account: ''}}>
+        <React.StrictMode>
+          <RouterProvider router={router}/>
+        </React.StrictMode>
+      </AppContext.Provider>
     </div>
   );
 }
