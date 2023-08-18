@@ -35,17 +35,7 @@ export class MessageService {
   }
 
   async listLatestMessage() {
-    // query 1 week
-    const toBlock = await this.getCurrentBlockHeight();
-    const fromBlock = toBlock - 60 * 60 * 24 * 7 * 4;
-
-    const messageBoard = await this.getMessageBoard();
-    const filter = messageBoard.filters.OnBoard();
-    const events = await messageBoard.queryFilter(
-      filter,
-      fromBlock,
-      toBlock
-    );
+    const events = await this.listLatestEvent();
     if (!events || events.length < 1) {
       return [];
     }
@@ -62,6 +52,33 @@ export class MessageService {
         };
       });
     return messageList;
+  }
+
+  private async listLatestEvent() {
+    const messageBoard = await this.getMessageBoard();
+    const filter = messageBoard.filters.OnBoard();
+    let events = [];
+
+    // query 1 week
+    let toBlock = await this.getCurrentBlockHeight();
+    let fromBlock = toBlock;
+    const onWeek = 60 * 60 * 24 * 7 * 4;
+
+    do {
+      const start = toBlock - onWeek;
+      fromBlock = start > 0 ? start : 0;
+
+      // query
+      events = await messageBoard.queryFilter(
+        filter,
+        fromBlock,
+        toBlock
+      );
+
+      toBlock = toBlock - onWeek;
+    } while (events.length < 1 && fromBlock > 0);
+
+    return events;
   }
 
   async withdraw() {
