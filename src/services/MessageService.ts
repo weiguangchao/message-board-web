@@ -35,23 +35,43 @@ export class MessageService {
   }
 
   async listLatestMessage() {
+    // query 1 week
+    const toBlock = await this.getCurrentBlockHeight();
+    const fromBlock = toBlock - 60 * 60 * 24 * 7 * 4;
+
     const messageBoard = await this.getMessageBoard();
     const filter = messageBoard.filters.OnBoard();
-    const events = await messageBoard.queryFilter(filter);
+    const events = await messageBoard.queryFilter(
+      filter,
+      fromBlock,
+      toBlock
+    );
     if (!events || events.length < 1) {
       return [];
     }
 
-    const messageList = events.filter((e: any) => e.args[0]).map((e: any) => {
-      const data = e.args[0];
-      const message = ethers.toUtf8String(data);
-      const txHash = e.transactionHash;
+    const messageList = events.filter((e: any) => e.args[0])
+      .map((e: any) => {
+        const data = e.args[0];
+        const message = ethers.toUtf8String(data);
+        const txHash = e.transactionHash;
 
-      return {
-        message,
-        txHash,
-      };
-    });
+        return {
+          message,
+          txHash,
+        };
+      });
     return messageList;
+  }
+
+  async withdraw() {
+    const messageBoard = await this.getMessageBoard();
+    await messageBoard.withdraw();
+  }
+
+  private async getCurrentBlockHeight() {
+    const provider = walletService.getProvider();
+    const blockNumber = await provider.getBlockNumber();
+    return blockNumber;
   }
 }

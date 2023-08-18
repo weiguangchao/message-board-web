@@ -10,4 +10,8 @@ export interface WalletService {
   isConnected(): boolean;
 
   getAccount(): Promise<string>;
+
+  transfer(to: string, value: string): Promise<string>;
+
+  getBalance(who: string): Promise<bigint>;
 }

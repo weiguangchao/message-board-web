@@ -1,7 +1,7 @@
-import { Button, Carousel } from 'antd';
+import { Alert, Button, Carousel } from 'antd';
 import React, { useEffect, useState } from 'react';
 
-import { messageService } from '../../services';
+import { messageService, walletService } from '../../services';
 
 const contentStyle: React.CSSProperties = {
   height: '160px',
@@ -11,8 +11,11 @@ const contentStyle: React.CSSProperties = {
   background: 'rgba(0, 0, 0, 0.06)',
 };
 
+const donateAmount = '0.002';
+
 function MessageList() {
   const [messageList, setMessageList] = useState([]);
+  const [alertMsg, setAlertMsg] = useState('');
 
   useEffect(() => {
     messageService.listLatestMessage().then((messageList: any) => {
@@ -34,10 +37,6 @@ function MessageList() {
             >
               {message}
             </Button>
-            {/*<a target="_blank"*/}
-            {/*   href={`${process.env.REACT_APP_BLOCKCHAIN_EXPLORE}/tx/0x3d21de9d8661a5eefd091457bf2fc4aa5450a6ed63fb623f9616ab492c4e5a57`}>*/}
-            {/*  {message}*/}
-            {/*</a>*/}
           </h3>
         </div>
       );
@@ -45,11 +44,20 @@ function MessageList() {
     return list;
   };
 
+  const onDonateClick = async () => {
+    const txHash = await walletService.transfer(process.env.REACT_APP_MESSAGE_BOARD_CONSTRACT as any, donateAmount);
+    setAlertMsg(`感谢老铁的支持！\n${process.env.REACT_APP_BLOCKCHAIN_EXPLORE}/tx/${txHash}`);
+  };
+
   return (
     <div style={{width: '500px', margin: 'auto'}}>
       <Carousel autoplay dotPosition="left">
         {renderMessageList()}
       </Carousel>
+      <Button onClick={onDonateClick}>
+        交个朋友，v我 {donateAmount}
+      </Button>
+      {alertMsg ? <Alert message={alertMsg} type="success" closable/> : ''}
     </div>
   );
 }

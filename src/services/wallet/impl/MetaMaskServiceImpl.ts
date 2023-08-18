@@ -54,7 +54,7 @@ export class MetaMaskServiceImpl implements WalletService {
           // ],
           "nativeCurrency": {
             // "name": "xDAI",
-            "symbol": "AETH",
+            "symbol": "ARB",
             "decimals": 18
           },
           "blockExplorerUrls": [
@@ -100,5 +100,19 @@ export class MetaMaskServiceImpl implements WalletService {
     }
 
     return '';
+  }
+
+  async transfer(to: string, amount: string): Promise<string> {
+    const value = ethers.parseEther(amount);
+    const info = {to, value};
+    const provider = this.getProvider();
+    const signer = await provider.getSigner();
+    const tx = await signer.sendTransaction(info);
+    return tx.hash;
+  }
+
+  async getBalance(who: string): Promise<bigint> {
+    const balance = await this.getProvider().getBalance(who);
+    return balance;
   }
 }

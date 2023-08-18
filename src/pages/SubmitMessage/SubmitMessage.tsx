@@ -1,4 +1,5 @@
 import { Alert, Button, Col, Input, Row } from 'antd';
+import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 
 import AdminInfo from '../../components/AdminInfo/AdminInfo';
@@ -11,11 +12,15 @@ function SubmitMessage() {
   const [connected, setConnected] = useState(false);
   const [account, setAccount] = useState('');
   const [alertMsg, setAlertMsg] = useState('');
+  const [balance, setBalance] = useState(0n);
 
 
   useEffect(() => {
     const connected = walletService.isConnected();
     setConnected(connected);
+
+    walletService.getBalance(process.env.REACT_APP_MESSAGE_BOARD_CONSTRACT as any)
+      .then(balance => setBalance(balance));
   }, [account]);
 
   const onGenerateMessageClick = async () => {
@@ -24,10 +29,15 @@ function SubmitMessage() {
     await messageService.submitMessage(key, msg);
   };
 
+  const onWithdrawClick = async () => {
+    await messageService.withdraw();
+    setBalance(0n);
+  };
+
   return (
     <div style={{width: '500px', margin: 'auto'}}>
       {connected && account ? <AdminInfo address={account}/> : <ConnectWallet setAccount={setAccount}/>}
-      {alertMsg ? <Alert message={alertMsg} type="success" closable/> : <></>}
+      {alertMsg ? <Alert message={alertMsg} type="success" closable/> : ''}
       <Row>
         <Col span={16}>
           <Input placeholder="请输入你要提交的Message！"
@@ -41,10 +51,15 @@ function SubmitMessage() {
           <Button type="primary"
                   onClick={onGenerateMessageClick}
                   disabled={!msg}>
-            生成Message Key
+            提交Message
           </Button>
         </Col>
       </Row>
+      <Button type="primary"
+              onClick={onWithdrawClick}
+              disabled={balance <= 0n}>
+        {ethers.formatEther(balance)} 提钱，跑路
+      </Button>
     </div>
   );
 }
